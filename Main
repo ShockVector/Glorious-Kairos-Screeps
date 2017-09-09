@@ -1,4 +1,59 @@
 
+var roleHarvester = require('role.harvester');
+
+var roleUpgrader = require('role.upgrader');
+
+var roleBuilder = require('role.builder');
+
+module.exports.loop = function () {
+    
+    
+    var tower = Game.getObjectById('TOWER_ID');
+
+    if(tower) {
+
+        var closestDamagedStructure = tower.pos.findClosestByRange(FIND_STRUCTURES, {
+
+            filter: (structure) => structure.hits < structure.hitsMax
+
+        });
+
+        if(closestDamagedStructure) {
+
+            tower.repair(closestDamagedStructure);
+
+        }
+
+
+
+        var closestHostile = tower.pos.findClosestByRange(FIND_HOSTILE_CREEPS);
+
+        if(closestHostile) {
+
+            tower.attack(closestHostile);
+
+        }
+
+    }
+
+
+
+
+
+    for(var name in Memory.creeps) {
+
+        if(!Game.creeps[name]) {
+
+            delete Memory.creeps[name];
+
+            console.log('Clearing non-existing creep memory:', name);
+
+        }
+
+    }
+
+
+
     var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
     var upgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
     var builder = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
@@ -10,17 +65,17 @@
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'harvester'});
 
-        //console.log('Spawning new harvester: ' + newName);
+        console.log('Spawning new harvester: ' + newName);
 
     }
-    if(upgrader.length < 3) {
+    if((upgrader.length < 3)&& (harvesters.length>=3)) {
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'upgrader'});
 
         //console.log('Spawning new upgrader: ' + newName);
 
     }
-     if(builder.length < 5) {
+     if((builder.length < 4)&&(harvesters.length>=4)) {
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'builder'});
 
@@ -59,6 +114,7 @@
                         structure.structureType == STRUCTURE_TOWER) && structure.energy < structure.energyCapacity;
             }
         });
+        var isBuilding = creep.room.find(FIND_CONSTRUCTION_SITES);
         //console.log('Energy Targets: ' + energyTargets.length);
 
 
@@ -78,8 +134,17 @@
 
         }
         if(creep.memory.role == 'builder') {
-
-            roleBuilder.run(creep);
+            if (isBuilding>0){
+                roleBuilder.run(creep);
+            }
+            if((isBuilding==0)&&(energyTargets.length>0))
+            {
+                roleHarvester.run(creep)
+            }
+            if((isBuilding==0)&&(energyTargets.length==0))
+            {
+                roleUpgrader.run(creep)
+            }
 
         }
         
