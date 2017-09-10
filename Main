@@ -1,4 +1,3 @@
-
 var roleHarvester = require('role.harvester');
 
 var roleUpgrader = require('role.upgrader');
@@ -61,21 +60,21 @@ module.exports.loop = function () {
     //console.log('Harvesters: ' + harvesters.length);
     //console.log('Upgraders: ' +  upgrader.length);
 
-    if(harvesters.length < 6) {
+    if(harvesters.length < 12) {
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'harvester'});
 
         console.log('Spawning new harvester: ' + newName);
 
     }
-    if((upgrader.length < 3)&& (harvesters.length>=3)) {
+    if((upgrader.length < 6)&& (harvesters.length>=3)) {
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'upgrader'});
 
         //console.log('Spawning new upgrader: ' + newName);
 
     }
-     if((builder.length < 4)&&(harvesters.length>=4)) {
+     if((builder.length < 8)&&(harvesters.length>=4)) {
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'builder'});
 
@@ -134,14 +133,14 @@ module.exports.loop = function () {
 
         }
         if(creep.memory.role == 'builder') {
-            if (isBuilding>0){
+            if (isBuilding.length>0){
                 roleBuilder.run(creep);
             }
-            if((isBuilding==0)&&(energyTargets.length>0))
+            if((isBuilding.length==0)&&(energyTargets.length>0))
             {
                 roleHarvester.run(creep)
             }
-            if((isBuilding==0)&&(energyTargets.length==0))
+            if((isBuilding.length==0)&&(energyTargets.length==0))
             {
                 roleUpgrader.run(creep)
             }
