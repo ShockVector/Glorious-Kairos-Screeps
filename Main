@@ -2,6 +2,8 @@ var roleHarvester = require('role.harvester');
 
 var roleUpgrader = require('role.upgrader');
 
+var roleRepair = require('role.repair');
+
 var roleBuilder = require('role.builder');
 
 module.exports.loop = function () {
@@ -45,7 +47,7 @@ module.exports.loop = function () {
 
             delete Memory.creeps[name];
 
-            console.log('Clearing non-existing creep memory:', name);
+            //console.log('Clearing non-existing creep memory:', name);
 
         }
 
@@ -56,32 +58,41 @@ module.exports.loop = function () {
     var harvesters = _.filter(Game.creeps, (creep) => creep.memory.role == 'harvester');
     var upgrader = _.filter(Game.creeps, (creep) => creep.memory.role == 'upgrader');
     var builder = _.filter(Game.creeps, (creep) => creep.memory.role == 'builder');
+    var repairer = _.filter(Game.creeps, (creep) => creep.memory.role == 'repair');
     var energyEn = Game.spawns.Spawn1.energy;
 
     //console.log('Upgraders: ' +  upgrader.length);
 
-    if((harvesters.length < 2)&&(energyEn>200)) {
+    if((harvesters.length < 3)&&(energyEn>200)) {
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'harvester'});
 
-        console.log('Spawning new harvester: ' + newName);
+        //console.log('Spawning new harvester: ' + newName);
 
     }
     
-    if((upgrader.length < 4)&& (harvesters.length>=3)&&(energyEn>200)) {
+    if((upgrader.length < 4)&& (harvesters.length>=1)&&(energyEn>200)) {
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'upgrader'});
 
         //console.log('Spawning new upgrader: ' + newName);
 
     }
-     if((builder.length < 4)&&(harvesters.length>=4)&&(energyEn>200)) {
+     if((builder.length < 4)&&(harvesters.length>=1)&&(energyEn>200)) {
 
         var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'builder'});
 
         //console.log('Spawning new upgrader: ' + newName);
 
     }
+    if((repairer.length < 4)&&(harvesters.length>=1)&&(energyEn>200)) {
+
+        var newName = Game.spawns['Spawn1'].createCreep([WORK,CARRY,MOVE], undefined, {role: 'repair'});
+
+        //console.log('Spawning new upgrader: ' + newName);
+
+    }
+    
 
 
 
@@ -115,7 +126,10 @@ module.exports.loop = function () {
             }
         });
         var isBuilding = creep.room.find(FIND_CONSTRUCTION_SITES);
-        //console.log('Energy Targets: ' + energyTargets.length);
+        var structureRep = creep.room.find(FIND_STRUCTURES, {
+                filter: (s) => s.hits < s.hitsMax && s.structureType != STRUCTURE_WALL
+            });
+        //console.log('Energy Targets: ' + structureRep.length);
 
 
         if(creep.memory.role == 'harvester') {
@@ -123,6 +137,21 @@ module.exports.loop = function () {
                 roleHarvester.run(creep);
             }
             if(energyTargets.length==0){
+                roleUpgrader.run(creep);
+            }
+
+        }
+         if(creep.memory.role == 'repair') {
+            if (structureRep.length>0){
+                roleRepair.run(creep);
+            }
+            if((isBuilding.length>0)){
+                roleBuilder.run(creep);
+            }
+            if((isBuilding.length==0)&&(energyTargets.length>0)){
+                roleHarvester.run(creep);
+            }
+            if((isBuilding.length==0)&&(energyTargets.length==0)){
                 roleUpgrader.run(creep);
             }
 
@@ -150,5 +179,4 @@ module.exports.loop = function () {
         
 
     }
-
 }
